@@ -1,0 +1,84 @@
+<div id="hadith-app" style="max-width: 900px; margin: 20px auto; font-family: 'Segoe UI', Arial, sans-serif; color: #333;">
+    <h2 id="main-title" style="text-align: center; color: #1a531b;">Hadith Explorer</h2>
+    <div id="display-area" style="background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        Loading Library...
+    </div>
+</div>
+
+<script>
+    const API_KEY = "$2y$10$80vqLWiZLoHQ5wmr0nJz2OXlXY9VScdrukEO5fNXpiKg8ldm6l5a";
+    const BASE_URL = "https://hadithapi.com/api";
+
+    // Step 1: Fetch All Books
+    async function loadBooks() {
+        try {
+            const response = await fetch(`${BASE_URL}/books?apiKey=${API_KEY}`);
+            const data = await response.json();
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+            
+            data.books.forEach(book => {
+                html += `
+                <div onclick="loadChapters('${book.bookSlug}')" style="cursor:pointer; padding: 20px; background: #f1f8e9; border-radius: 8px; text-align: center; border: 1px solid #c8e6c9; transition: 0.3s;">
+                    <strong style="font-size: 18px; color: #1a531b;">${book.bookName}</strong>
+                    <p style="font-size: 12px; margin: 5px 0 0; color: #666;">Total Hadiths: ${book.hadiths_count}</p>
+                </div>`;
+            });
+            html += '</div>';
+            document.getElementById('display-area').innerHTML = html;
+            document.getElementById('main-title').innerText = "Select a Book";
+        } catch (e) { document.getElementById('display-area').innerHTML = "Error loading books."; }
+    }
+
+    // Step 2: Fetch Chapters
+    async function loadChapters(bookSlug) {
+        document.getElementById('display-area').innerHTML = "Loading Chapters...";
+        try {
+            const response = await fetch(`${BASE_URL}/${bookSlug}/chapters?apiKey=${API_KEY}`);
+            const data = await response.json();
+            let html = `<button onclick="loadBooks()" style="margin-bottom:15px; padding: 8px 15px; border-radius: 5px; cursor: pointer; border: none; background: #2c3e50; color: #fff;">← Back to Books</button>`;
+            html += '<ul style="list-style: none; padding: 0;">';
+            
+            data.chapters.forEach(ch => {
+                html += `
+                <li onclick="loadHadiths('${bookSlug}', ${ch.chapterNumber})" style="padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; background: #fff;">
+                    <strong>Chapter ${ch.chapterNumber}:</strong> ${ch.chapterEnglish}
+                </li>`;
+            });
+            html += 'ul>';
+            document.getElementById('display-area').innerHTML = html;
+            document.getElementById('main-title').innerText = "Select a Chapter";
+        } catch (e) { document.getElementById('display-area').innerHTML = "Error loading chapters."; }
+    }
+
+    // Step 3: Fetch Hadiths
+    async function loadHadiths(bookSlug, chapterId) {
+        document.getElementById('display-area').innerHTML = "Loading Hadiths...";
+        try {
+            const response = await fetch(`${BASE_URL}/hadiths?apiKey=${API_KEY}&book=${bookSlug}&chapter=${chapterId}`);
+            const data = await response.json();
+            const list = data.hadiths.data;
+
+            let html = `<button onclick="loadChapters('${bookSlug}')" style="margin-bottom:15px; padding: 8px 15px; border-radius: 5px; cursor: pointer; border: none; background: #2c3e50; color: #fff;">← Back to Chapters</button>`;
+            
+            list.forEach(h => {
+                // Logic to remove undefined Bengali translation
+                let bengaliSection = h.hadithBengali ? `<div style="margin-bottom: 10px; color: #333;"><strong>Bengali:</strong> ${h.hadithBengali}</div>` : '';
+
+                html += `
+                <div style="margin-bottom: 35px; border-bottom: 2px solid #f0f0f0; padding-bottom: 25px;">
+                    <div style="text-align: right; font-size: 24px; direction: rtl; margin-bottom: 20px; color: #1a531b; font-family: 'Amiri', serif; line-height: 1.8;">${h.hadithArabic}</div>
+                    <div style="margin-bottom: 10px; color: #2c3e50; line-height: 1.6;"><strong>English:</strong> ${h.hadithEnglish}</div>
+                    ${bengaliSection}
+                    <div style="font-size: 13px; color: #777; background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <strong>Narrator:</strong> ${h.englishNarrator} | <strong>Status:</strong> ${h.status} | <strong>Hadith No:</strong> ${h.hadithNumber}
+                    </div>
+                </div>`;
+            });
+            document.getElementById('display-area').innerHTML = html;
+            document.getElementById('main-title').innerText = "Hadith Details";
+        } catch (e) { document.getElementById('display-area').innerHTML = "Error loading hadiths."; }
+    }
+
+    loadBooks();
+</script>
+
