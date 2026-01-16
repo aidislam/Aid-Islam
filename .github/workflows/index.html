@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aid Islam - Islamic Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1b5e20; --secondary: #2e7d32; --text: #333; --bg: #f8fbf8; }
+        body { font-family: 'Hind Siliguri', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
+        
+        /* Sidebar Menu Style */
+        .sidebar { width: 250px; background: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; }
+        .sidebar-header { padding: 20px; background: var(--primary); color: white; text-align: center; font-size: 20px; font-weight: bold; }
+        .menu-item { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; transition: 0.3s; text-decoration: none; color: var(--text); }
+        .menu-item:hover { background: #e8f5e9; color: var(--primary); }
+        .menu-item i { margin-right: 10px; }
+
+        /* Main Content Area */
+        .main-content { margin-left: 250px; padding: 20px; }
+        .dashboard-header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border: 1px solid #eee; }
+        .clock { font-size: 48px; font-weight: bold; color: var(--primary); }
+        
+        /* Responsive Grid for Prayer Times */
+        .prayer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-top: 25px; }
+        .p-card { background: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--secondary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">Aid Islam</div>
+    <a href="#" class="menu-item">🏠 Dashboard</a>
+    <a href="#" class="menu-item">📖 Quran</a>
+    <a href="#" class="menu-item">📚 Hadith</a>
+    <a href="#" class="menu-item">🤲 Dua</a>
+    <a href="#" class="menu-item">📰 Articles</a>
+    <a href="#" class="menu-item">🕒 Prayer Times</a>
+    <a href="#" class="menu-item">🧭 Qibla Direction</a>
+    <a href="#" class="menu-item">📅 Calendar</a>
+    <a href="#" class="menu-item">📿 Tasbih</a>
+    <a href="#" class="menu-item">✨ Islamic Names</a>
+    <a href="#" class="menu-item">📢 Quranic Supplications</a>
+    <a href="#" class="menu-item">🕋 Names of Allah</a>
+    <a href="#" class="menu-item">🔴 Live</a>
+    <a href="#" class="menu-item">🤖 AI Guidance</a>
+</div>
+
+<div class="main-content">
+    <div class="dashboard-header">
+        <div id="bn-date" style="font-size: 18px; color: #666;">তারিখ লোড হচ্ছে...</div>
+        <div class="clock" id="live-clock">00:00:00</div>
+        <div id="hj-date" style="color: var(--secondary); font-weight: bold;">হিজরি তারিখ...</div>
+        <div id="location" style="font-size: 14px; margin-top: 10px; color: #888;">📍 লোকেশন লোড হচ্ছে...</div>
+    </div>
+
+    <div class="prayer-grid" id="prayer-times">
+        </div>
+</div>
+
+<script>
+    // লাইভ ঘড়ি
+    setInterval(() => {
+        document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('bn-BD');
+    }, 1000);
+
+    // বাংলা তারিখ
+    document.getElementById('bn-date').innerText = new Intl.DateTimeFormat('bn-BD-u-ca-bengali', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+    }).format(new Date());
+
+    // এপিআই থেকে ডাটা সংগ্রহ (অটো লোকেশন)
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        
+        try {
+            const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=2`);
+            const data = await res.json();
+            const t = data.data.timings;
+            const h = data.data.date.hijri;
+
+            document.getElementById('location').innerText = "📍 " + data.data.meta.timezone;
+            document.getElementById('hj-date').innerText = `${h.day} ${h.month.en} ${h.year} হিজরি`;
+
+            const prayers = [
+                {n: 'ফজর', v: t.Fajr}, {n: 'যোহর', v: t.Dhuhr}, {n: 'আসর', v: t.Asr},
+                {n: 'মাগরিব', v: t.Maghrib}, {n: 'এশা', v: t.Isha}, {n: 'তাহাজ্জুদ', v: t.Fajr}
+            ];
+
+            document.getElementById('prayer-times').innerHTML = prayers.map(p => `
+                <div class="p-card">
+                    <b style="color: var(--primary)">${p.n}</b><br>
+                    <span style="font-size: 18px;">${p.v}</span>
+                </div>
+            `).join('');
+
+        } catch (e) { console.error("Error loading API"); }
+    }, () => {
+        document.getElementById('location').innerText = "📍 লোকেশন পারমিশন দিন";
+    });
+</script>
+
+</body>
+</html>
+
