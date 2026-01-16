@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aid Islam Super App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1b5e20; --bg: #f4f7f4; --white: #ffffff; }
+        body { font-family: 'Hind Siliguri', sans-serif; margin: 0; display: flex; background: var(--bg); height: 100vh; overflow: hidden; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--white); border-right: 1px solid #ddd; overflow-y: auto; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 25px; background: var(--primary); color: white; text-align: center; font-size: 22px; font-weight: bold; position: sticky; top: 0; }
+        .menu-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.3s; color: #333; display: flex; align-items: center; }
+        .menu-item:hover { background: #e8f5e9; color: var(--primary); }
+        .menu-item.active { background: #e8f5e9; color: var(--primary); border-left: 5px solid var(--primary); font-weight: bold; }
+
+        /* Content Area */
+        .content { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
+        .card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 400px; }
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid #e8f5e9; padding-bottom: 10px; }
+
+        /* Prayer Grid */
+        .p-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-top: 20px; }
+        .p-card { background: #f9f9f9; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #eee; }
+
+        /* Loading Spinner */
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: 200px; border-bottom: 2px solid var(--primary); }
+            .content { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">Aid Islam</div>
+    <div class="menu-item active" onclick="loadPage('Dashboard', this)">🏠 Dashboard</div>
+    <div class="menu-item" onclick="loadPage('Quran', this)">📖 Quran</div>
+    <div class="menu-item" onclick="loadPage('Hadith', this)">📚 Hadith</div>
+    <div class="menu-item" onclick="loadPage('Prayer Times', this)">🕒 Prayer Times</div>
+    <div class="menu-item" onclick="loadPage('Tasbih', this)">📿 Tasbih</div>
+    <div class="menu-item" onclick="loadPage('Qibla', this)">🧭 Qibla Direction</div>
+    <div class="menu-item" onclick="loadPage('Calendar', this)">📅 Calendar</div>
+    <div class="menu-item" onclick="loadPage('Names of Allah', this)">🕋 Names of Allah</div>
+    <div class="menu-item" onclick="loadPage('AI Guidance', this)">🤖 AI Guidance</div>
+</div>
+
+<div class="content">
+    <div class="card" id="main-display">
+        </div>
+</div>
+
+<script>
+    // ১. মেইন রাউটিং ফাংশন (পেজ পরিবর্তন)
+    function loadPage(pageName, element) {
+        // মেনু সিলেকশন পরিবর্তন
+        document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+
+        const display = document.getElementById('main-display');
+        display.innerHTML = `<h2>${pageName}</h2><div class="loader"></div>`;
+
+        // পেজ লজিক সুইচ
+        setTimeout(() => {
+            switch(pageName) {
+                case 'Dashboard': renderDashboard(); break;
+                case 'Prayer Times': renderPrayerTimes(); break;
+                case 'Hadith': renderHadithLibrary(); break;
+                case 'Quran': display.innerHTML += "<p>আল-কুরআন সেকশন শীঘ্রই আসছে (এপিআই কানেক্ট হচ্ছে...)</p>"; break;
+                case 'Tasbih': renderTasbih(); break;
+                default: display.innerHTML += `<p>${pageName} সেকশনের কাজ চলছে...</p>`;
+            }
+        }, 500);
+    }
+
+    // ২. ড্যাশবোর্ড রেন্ডার
+    function renderDashboard() {
+        const now = new Date();
+        document.getElementById('main-display').innerHTML = `
+            <h2>🏠 ড্যাশবোর্ড</h2>
+            <div style="text-align:center; padding: 20px;">
+                <h1 style="font-size: 50px; color: var(--primary); margin:0;">${now.toLocaleTimeString('bn-BD')}</h1>
+                <p style="font-size: 20px; color: #666;">${new Intl.DateTimeFormat('bn-BD-u-ca-bengali', {day:'numeric', month:'long', year:'numeric'}).format(now)}</p>
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <strong>আজকের বাণী:</strong><br>
+                    "নিশ্চয়ই কষ্টের সাথেই স্বস্তি রয়েছে।" (সূরা ইনশিরাহ)
+                </div>
+            </div>
+        `;
+    }
+
+    // ৩. নামাজের সময় (GPS Based)
+    async function renderPrayerTimes() {
+        const display = document.getElementById('main-display');
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&method=2`);
+            const data = await res.json();
+            const t = data.data.timings;
+            
+            display.innerHTML = `
+                <h2>🕒 নামাজের সময়সূচী</h2>
+                <p>📍 লোকেশন: ${data.data.meta.timezone}</p>
+                <div class="p-grid">
+                    <div class="p-card"><b>ফজর</b><br>${t.Fajr}</div>
+                    <div class="p-card"><b>যোহর</b><br>${t.Dhuhr}</div>
+                    <div class="p-card"><b>আসর</b><br>${t.Asr}</div>
+                    <div class="p-card"><b>মাগরিব</b><br>${t.Maghrib}</div>
+                    <div class="p-card"><b>এশা</b><br>${t.Isha}</div>
+                </div>
+            `;
+        });
+    }
+
+    // ৪. তসবিহ কাউন্টার
+    let count = 0;
+    function renderTasbih() {
+        document.getElementById('main-display').innerHTML = `
+            <h2>📿 ডিজিটাল তসবিহ</h2>
+            <div style="text-align:center;">
+                <div id="counter" style="font-size: 80px; margin: 20px;">0</div>
+                <button onclick="updateCount()" style="padding: 20px 40px; font-size: 20px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer;">ক্লিক করুন</button>
+                <button onclick="count=0; document.getElementById('counter').innerText=0" style="margin-left: 10px; padding: 10px; cursor:pointer;">Reset</button>
+            </div>
+        `;
+    }
+    window.updateCount = () => { count++; document.getElementById('counter').innerText = count; }
+
+    // ডিফল্ট লোড
+    renderDashboard();
+</script>
+
+</body>
+</html>
