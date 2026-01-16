@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aid Islam - Prayer Times</title>
+    <style>
+        body { background-color: #f0f2f5; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; border: 2px solid #2e7d32; }
+        h2 { color: #1b5e20; margin-bottom: 5px; }
+        .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .time-box { background: #e8f5e9; padding: 10px; border-radius: 8px; border: 1px solid #c8e6c9; }
+        .live-clock { font-size: 24px; font-weight: bold; color: #d32f2f; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aid Islam (Prayer Dashboard)</h2>
+    <div id="location" style="font-size: 12px; color: #666;">লোকেশন লোড হচ্ছে...</div>
+    <div class="live-clock" id="clock">00:00:00</div>
+    <div id="bn-date" style="font-weight: bold; color: #2e7d32;">বাংলা তারিখ...</div>
+    <hr>
+    <div class="time-grid" id="prayer-times">
+        </div>
+</div>
+
+<script>
+    // লাইভ ঘড়ি
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('bn-BD');
+    }, 1000);
+
+    // বাংলা তারিখ
+    const bnDate = new Intl.DateTimeFormat('bn-BD-u-ca-bengali', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+    document.getElementById('bn-date').innerText = "আজ " + bnDate;
+
+    // লোকেশন ও নামাজ
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        
+        document.getElementById('location').innerText = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)} (India)`;
+
+        const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=2`);
+        const data = await res.json();
+        const t = data.data.timings;
+
+        const prayers = [
+            {n: "ফজর", v: t.Fajr}, {n: "যোহর", v: t.Dhuhr}, 
+            {n: "আসর", v: t.Asr}, {n: "মাগরিব", v: t.Maghrib}, 
+            {n: "এশা", v: t.Isha}, {n: "ইশরাক", v: t.Sunrise}
+        ];
+
+        document.getElementById('prayer-times').innerHTML = prayers.map(p => `
+            <div class="time-box"><b>${p.n}</b><br>${p.v}</div>
+        `).join('');
+    });
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aid Islam - Prayer Times</title>
+    <style>
+        body { background-color: #f0f2f5; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; border: 2px solid #2e7d32; }
+        h2 { color: #1b5e20; margin-bottom: 5px; }
+        .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .time-box { background: #e8f5e9; padding: 10px; border-radius: 8px; border: 1px solid #c8e6c9; }
+        .live-clock { font-size: 24px; font-weight: bold; color: #d32f2f; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Aid Islam (Prayer Dashboard)</h2>
+    <div id="location" style="font-size: 12px; color: #666;">লোকেশন লোড হচ্ছে...</div>
+    <div class="live-clock" id="clock">00:00:00</div>
+    <div id="bn-date" style="font-weight: bold; color: #2e7d32;">বাংলা তারিখ...</div>
+    <hr>
+    <div class="time-grid" id="prayer-times">
+        </div>
+</div>
+
+<script>
+    // লাইভ ঘড়ি
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('bn-BD');
+    }, 1000);
+
+    // বাংলা তারিখ
+    const bnDate = new Intl.DateTimeFormat('bn-BD-u-ca-bengali', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+    document.getElementById('bn-date').innerText = "আজ " + bnDate;
+
+    // লোকেশন ও নামাজ
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        
+        document.getElementById('location').innerText = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)} (India)`;
+
+        const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=2`);
+        const data = await res.json();
+        const t = data.data.timings;
+
+        const prayers = [
+            {n: "ফজর", v: t.Fajr}, {n: "যোহর", v: t.Dhuhr}, 
+            {n: "আসর", v: t.Asr}, {n: "মাগরিব", v: t.Maghrib}, 
+            {n: "এশা", v: t.Isha}, {n: "ইশরাক", v: t.Sunrise}
+        ];
+
+        document.getElementById('prayer-times').innerHTML = prayers.map(p => `
+            <div class="time-box"><b>${p.n}</b><br>${p.v}</div>
+        `).join('');
+    });
+</script>
+
+</body>
+  </html>
